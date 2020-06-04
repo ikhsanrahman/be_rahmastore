@@ -40,10 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'user',
     'buyer',
     'product',
-    'home'
+    'home',
+    'user',
+    'seller',
 ]
 
 REST_FRAMEWORK = {
