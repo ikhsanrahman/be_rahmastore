@@ -7,92 +7,92 @@ from utilization.decorator import buyer_token_required
 
 # Create your views here.
 
-class BuyerRegisterView(viewsets.ViewSet):
-	def create(self, request):
-		responses = {}
-		data = request.data
-		serializer = BuyerRegisterSerializer(data, many=True)
+# class BuyerRegisterView(viewsets.ViewSet):
+# 	def create(self, request):
+# 		responses = {}
+# 		data = request.data
+# 		serializer = BuyerRegisterSerializer(data, many=True)
 
-		buyer = Buyer.objects.get(email=data['email'])
+# 		buyer = Buyer.objects.get(email=data['email'])
 
-		if serializer.is_valid() and not buyer:
-			new_buyer = Buyer(fullname=data['fullname'], password=data['password'], email=data['email'], gender=data['gender'],
-				address_line1=data['address_line1'], address_line2=data['address_line2'], house_no=data['house_no'], 
-				phone_number=data['phone_number'], postal_code=data['postal_code'], city=data['city'], province=data['province'],
-				country=data['country'])
-			new_buyer.save()
-			responses['msg'] = "new buyer has been added"
-			return Response(responses)
-		return Response("can not create account, try again")
+# 		if serializer.is_valid() and not buyer:
+# 			new_buyer = Buyer(fullname=data['fullname'], password=data['password'], email=data['email'], gender=data['gender'],
+# 				address_line1=data['address_line1'], address_line2=data['address_line2'], house_no=data['house_no'], 
+# 				phone_number=data['phone_number'], postal_code=data['postal_code'], city=data['city'], province=data['province'],
+# 				country=data['country'])
+# 			new_buyer.save()
+# 			responses['msg'] = "new buyer has been added"
+# 			return Response(responses)
+# 		return Response("can not create account, try again")
 
-class BuyerLoginView(viewsets.ViewSet):
-	def list(self, request):
-		responses = {}
-		data = request.data
-		serializer = BuyerLoginSerializer(data)
-		buyer = Buyer.objects.filter(email=data['email'], is_login=False)
+# class BuyerLoginView(viewsets.ViewSet):
+# 	def list(self, request):
+# 		responses = {}
+# 		data = request.data
+# 		serializer = BuyerLoginSerializer(data)
+# 		buyer = Buyer.objects.filter(email=data['email'], is_login=False)
 
-		if serializer.is_valid() and buyer.check_password_hash(data['password']):
-			buyer.time_login = TIME
-			auth_token = buyer.encode_auth_token(buyer.buyer_uuid)
-			responses['token'] = auth_token.decode()
-			return Response(responses)
+# 		if serializer.is_valid() and buyer.check_password_hash(data['password']):
+# 			buyer.time_login = TIME
+# 			auth_token = buyer.encode_auth_token(buyer.buyer_uuid)
+# 			responses['token'] = auth_token.decode()
+# 			return Response(responses)
 
-		return Response("can not login, try again")
+# 		return Response("can not login, try again")
 
-class BuyerResetPasswordView(viewsets.ViewSet):
-	def partial_retrieve(self, request):
-		responses = {}
-		data = request.data
-		buyer = Buyer.objects.filter(email=data['email'])
-		serializer = BuyerResetPassword
-		if buyer and serializer.is_valid():
-			buyer.password = data['password']
-			buyer.generate_password_hash(data['password'])
-			buyer.save()
-			responses['msg'] = "reset password succeed"
-			return Response(responses)
-		return Response("can not reset password, try again")
+# class BuyerResetPasswordView(viewsets.ViewSet):
+# 	def partial_retrieve(self, request):
+# 		responses = {}
+# 		data = request.data
+# 		buyer = Buyer.objects.filter(email=data['email'])
+# 		serializer = BuyerResetPassword
+# 		if buyer and serializer.is_valid():
+# 			buyer.password = data['password']
+# 			buyer.generate_password_hash(data['password'])
+# 			buyer.save()
+# 			responses['msg'] = "reset password succeed"
+# 			return Response(responses)
+# 		return Response("can not reset password, try again")
 
-class BuyerUpdateProfileView(viewsets.ViewSet):
-	@buyer_token_required
-	def update(self, request, buyer_uuid):
-		responses = {}
-		data = request.data
-		serializer = BuyerUpdateProfileSerializer(data)
-		buyer = Buyer.objects.filter(buyer_uuid=buyer_uuid, is_login=True)
-		if buyer and serializer.is_valid():
-			buyer.fullname = data['fullname']
-			buyer.gender = data['gender']
-			buyer.address_line1 = data['address_line1']
-			buyer.address_line2 = data['address_line2']
-			buyer.house_no = data['house_no']
-			buyer.phone_number = data['phone_number']
-			buyer.postal_code = data['postal_code']
-			buyer.city = data['city']
-			buyer.province = data['province']
-			buyer.country = data['country']
-			buyer.save()
-			responses['msg'] = "update profile succeed"
-			return Response(responses)
-		return Response("can not update profile, check again")
+# class BuyerUpdateProfileView(viewsets.ViewSet):
+# 	@buyer_token_required
+# 	def update(self, request, buyer_uuid):
+# 		responses = {}
+# 		data = request.data
+# 		serializer = BuyerUpdateProfileSerializer(data)
+# 		buyer = Buyer.objects.filter(buyer_uuid=buyer_uuid, is_login=True)
+# 		if buyer and serializer.is_valid():
+# 			buyer.fullname = data['fullname']
+# 			buyer.gender = data['gender']
+# 			buyer.address_line1 = data['address_line1']
+# 			buyer.address_line2 = data['address_line2']
+# 			buyer.house_no = data['house_no']
+# 			buyer.phone_number = data['phone_number']
+# 			buyer.postal_code = data['postal_code']
+# 			buyer.city = data['city']
+# 			buyer.province = data['province']
+# 			buyer.country = data['country']
+# 			buyer.save()
+# 			responses['msg'] = "update profile succeed"
+# 			return Response(responses)
+# 		return Response("can not update profile, check again")
 
-class BuyerLogoutView(viewsets.ViewSet):
-	@buyer_token_required
-	def list(self, request, buyer_uuid):
-		responses = {}
-		data = request.data
-		buyer = Buyer.objects.filter(buyer_uuid=buyer_uuid, is_login=True)
-		token = BlacklistToken.objects.filter(token=data['token'])
-		if buyer and not token:
-			buyer.is_login = False
-			buyer.time_logout = TIME
-			new_blacklisted = BlacklistToken(token=data['token'])
-			buyer.save()
-			new_blacklisted.save()
-			responses['msg'] = "buyer is already logout"
-			return Response(responses)
-		return Response("user is not valid")
+# class BuyerLogoutView(viewsets.ViewSet):
+# 	@buyer_token_required
+# 	def list(self, request, buyer_uuid):
+# 		responses = {}
+# 		data = request.data
+# 		buyer = Buyer.objects.filter(buyer_uuid=buyer_uuid, is_login=True)
+# 		token = BlacklistToken.objects.filter(token=data['token'])
+# 		if buyer and not token:
+# 			buyer.is_login = False
+# 			buyer.time_logout = TIME
+# 			new_blacklisted = BlacklistToken(token=data['token'])
+# 			buyer.save()
+# 			new_blacklisted.save()
+# 			responses['msg'] = "buyer is already logout"
+# 			return Response(responses)
+# 		return Response("user is not valid")
 
 # class BuyerSearchProductView(viewsets.ViewSet):
 # 	def get(self, request, buyer_uuid):
